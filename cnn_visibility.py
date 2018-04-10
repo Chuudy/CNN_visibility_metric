@@ -1,20 +1,11 @@
-# from importData import Dataset
-
 import tensorflow as tf
 import numpy as np
 import cv2
 import os
 import sys
-import shutil
-import json
-from PIL import Image
-from PIL import ImageDraw
-import time
 import glob
 import itertools
 import argparse
-
-patchMergingMethod = 'average' #[average, max, median, percentile]
 
 # Parameters
 batch_size = 1024
