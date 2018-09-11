@@ -134,48 +134,26 @@ def multiplePrediction(testList, refList, parameters):
     print("------- Model From {:s} -------".format(modelPath))
     for test, ref in zip(testList, refList):
         predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir)
-
-def parseLists(parameters):
-    testList = []
-    refList = []
-    try:
-        lists = parameters['testList'] + parameters['referenceList']
-    except:
-        print("Error on creating image lists. Check testList and referenceList")
-        return [],[]
-        
-    lists = [glob.glob(el) for el in lists]
-    lists = list(itertools.chain(*lists))
-    half = len(lists)//2
-    
-    print("Tests:")
-    testList = lists[:half]
-    print(testList)
-    
-    print("References:")
-    refList = lists[half:]
-    print(refList)
-    
-    return testList, refList 
     
 def run(parameters):
-    testList, refList = parseLists(parameters)
+    refList = [glob.glob(el) for el in parameters['referenceList']]
+    refList = list(itertools.chain(*refList))
     
-    for l1,l2 in zip(testList, refList):
-        print(l1, "  <----->  ",l2)
-    
+    testList = [glob.glob(el) for el in parameters['testList']]
+    testList = list(itertools.chain(*testList))
+ 
     if(len(testList) == 0 or len(refList) == 0):
         print("Number of Tests:", len(testList))
         print("Number of References:", len(refList))
         print("One or both lists contain zero elements.")
     elif(len(testList) == len(refList)):
+        for l1,l2 in zip(testList, refList):
+            print(l1, "  <----->  ",l2)
         multiplePrediction(testList, refList, parameters)
     else:
         print("Different Number of elements. Test and Reference should be paired.")
         print("Number of Tests:", len(testList))
         print("Number of References:", len(refList))
-        print("Difference Tests-References: ", set(testList) - set(refList))  
-        print("Difference References-Tests: ", set(refList) - set(testList))
 
 class readable_dir(argparse.Action):
     def __call__(self,parser, namespace, values, option_string=None):
