@@ -149,7 +149,7 @@ def run(parameters):
     elif(len(testList) == len(refList)):
         for l1,l2 in zip(testList, refList):
             print(l1, "  <----->  ",l2)
-        multiplePrediction(testList, refList, parameters)
+        #multiplePrediction(testList, refList, parameters)
     else:
         print("Different Number of elements. Test and Reference should be paired.")
         print("Number of Tests:", len(testList))
