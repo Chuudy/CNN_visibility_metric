@@ -15,9 +15,9 @@ halfPatchsize = int(patchSize/2)
 modelPath = "./NetworkModel"
 
 def predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir ):
-    windowStep = patchSize - stride;
+    windowStep = patchSize - stride
     if(windowStep <= 0):
-        windowStep = patchSize;
+        windowStep = patchSize
     currentPath = os.path.dirname(os.path.realpath(__file__))
     
     
@@ -36,28 +36,26 @@ def predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir ):
     #Reading images and allocating space for result image
     refImage = cv2.imread(referenceFileName)
     dstImage = cv2.imread(testFilename)
-    origWidth, origHeight, channels = refImage.shape;
+    origWidth, origHeight, channels = refImage.shape
 
-    tmpRefConcat = np.concatenate((np.flip(refImage, 0), refImage, np.flip(refImage, 0)),0);
+    tmpRefConcat = np.concatenate((np.flip(refImage, 0), refImage, np.flip(refImage, 0)),0)
     refImage = np.concatenate((np.flip(tmpRefConcat, 1), tmpRefConcat, np.flip(tmpRefConcat, 1)),1)
     
-    tmpDstConcat = np.concatenate((np.flip(dstImage, 0), dstImage, np.flip(dstImage, 0)),0);
+    tmpDstConcat = np.concatenate((np.flip(dstImage, 0), dstImage, np.flip(dstImage, 0)),0)
     dstImage = np.concatenate((np.flip(tmpDstConcat, 1), tmpDstConcat, np.flip(tmpDstConcat, 1)),1)
     
     refImage = refImage[origWidth-patchSize:2*origWidth+patchSize, origHeight-patchSize:2*origHeight+patchSize,:]
     dstImage = dstImage[origWidth-patchSize:2*origWidth+patchSize, origHeight-patchSize:2*origHeight+patchSize,:]
     
-    width, height, channels = refImage.shape;
+    width, height, channels = refImage.shape
     
-    overlapNumber = int(patchSize / windowStep);
+    overlapNumber = int(patchSize / windowStep)
     aggreagtedImage = np.ones((width, height, overlapNumber*overlapNumber))
     
-    patchCounter = 0;
-    
-    refRecords = [];
-    dstRecords = [];
-    xIndices = [];
-    yIndices = [];
+    refRecords = []
+    dstRecords = []
+    xIndices = []
+    yIndices = []
     
     #Patches preparation
     for i in range(0,width-patchSize,windowStep):
@@ -89,7 +87,7 @@ def predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir ):
         predict = sess.run(pred, feed_dict={x: tuple(dstRecords[start:end]) , x_ref:tuple(refRecords[start:end]), keep_prob: 1.})
     
         for index in range(0, r):
-            predictedPatch = cv2.resize(predict[index,:,:,:], (patchSize,patchSize));
+            predictedPatch = cv2.resize(predict[index,:,:,:], (patchSize,patchSize))
             
             xx = xIndices[index+ i* batch_size]
             yy = yIndices[index+ i* batch_size]   
@@ -97,10 +95,10 @@ def predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir ):
             layerIndex = int((xx%patchSize)/windowStep)*overlapNumber + int((yy%patchSize)/windowStep)
             aggreagtedImage[xx:xx+patchSize, yy:yy+patchSize, layerIndex] = predictedPatch
     
-    vismap = np.mean(aggreagtedImage, axis=2);
+    vismap = np.mean(aggreagtedImage, axis=2)
         
     vismap = vismap[patchSize:origWidth+patchSize, patchSize:origHeight+patchSize]
-    cv2.imwrite(os.path.join(resultDir,basename + '_vismap' + extension), vismap)
+    cv2.imwrite(os.path.join(resultDir,basename + extension), vismap)
     
         
  
@@ -119,9 +117,9 @@ def multiplePrediction(testList, refList, parameters):
     
     #Loading net
     ckpt = tf.train.get_checkpoint_state(modelPath)
-    print(ckpt);
+    print(ckpt)
     saver = tf.train.import_meta_graph(ckpt.model_checkpoint_path + '.meta')
-    print(saver);
+    print(saver)
     
     pred = tf.get_collection("pred")[0]
     x = tf.get_collection("x")[0]
@@ -136,6 +134,15 @@ def multiplePrediction(testList, refList, parameters):
         predict(test,ref, sess, pred, x, x_ref, keep_prob, resultDir)
     
 def run(parameters):
+
+    try:
+        activeGPU = parameters['activeGPU'][0]
+        print(activeGPU)
+        os.environ["CUDA_VISIBLE_DEVICES"] = activeGPU
+    except:
+        print("Use default GPU setup")
+        pass
+
     refList = [glob.glob(el) for el in parameters['referenceList']]
     refList = list(itertools.chain(*refList))
     
@@ -170,7 +177,8 @@ def main():
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--testList', nargs='+')
-    parser.add_argument('-r', '--referenceList', nargs='+')
+    parser.add_argument('-r', '--referenceList', nargs='+')    
+    parser.add_argument('-g', '--activeGPU', nargs='+')
     parser.add_argument('-d', '--resultDir')
     parser.print_help()
     
