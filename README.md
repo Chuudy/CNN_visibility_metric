@@ -48,9 +48,6 @@ The metric will autmatically pair images and process all of them. It is highly r
 By default, the results will be saved in 'vismaps' directory, which is created automatically and located in metric root directory.
 To direct the output to the custom directory use the third argument as shown below:
 
-The tool can also produce a heatmap of differences between images. The heatmap
-will be output as a PNM image. To produce one, run:
-
 ```
 python cnn_visibility.py -r referenceDirectory/* -t distortedDirectory/* -d customDirectoryName
 ```
